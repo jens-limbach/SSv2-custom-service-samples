@@ -9,14 +9,14 @@ entity Samples : managed{
     };
     product               : Association to Products;     // Product: Relation (Part Number)
     opportunity           : Association to Opportunities;// Opportunity: Relation (Opportunity)
+    serviceCase           : Association to ServiceCases;     // Product: Relation (Part Number)
+    account               : Association to Account;// Opportunity: Relation (Opportunity)
     numberOfSamples       : Integer;                    // Number of Samples: Number
     shipToAddress         : String(255);                    // Ship to Address: Address (structured type)
 
     @dataFormat: 'AMOUNT'
     costOfSample          : Composition of Amount;              // Cost of Sample: Currency
-    /*currency              : String enum {               // Currency: Select List
-        EUR; GBP; USD; AUD; CAD; CHF; JPY; CNY; INR
-    };*/
+
     hazardous             : Boolean;                    // Hazardous: Boolean
     hazardousReason       : String(1000);               // Hazardous Reason: Text-Long (1000 Chars)
     dueDate               : Date;                       // Due Date: Date
@@ -30,6 +30,17 @@ entity Samples : managed{
     PackagingMaterial          : String enum {               // Packaging Material: Select List
         Plastic; Metal; OtherMaterial
     }; 
+
+    // Composition: sub-entity Notes (one or many as needed)
+    notes                  : Composition of many Notes on notes.sample = $self;   // Composition of Notes
+
+}
+
+// New Notes sub-entity used as composition from Samples
+entity Notes : managed {
+    key ID                : UUID;
+    note                  : String(1000);
+    sample                : Association to Samples;    // association back to parent used by the ON-condition
 }
 
 entity Products {
@@ -39,6 +50,17 @@ entity Products {
 
 entity Opportunities {
     key opportunityID     : UUID;
+    name                  : String(255);
+}
+
+
+entity Account {
+    key accountID        : UUID;
+    name                  : String(255);
+}
+
+entity ServiceCases {
+    key caseID     : UUID;
     name                  : String(255);
 }
 

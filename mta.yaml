@@ -25,7 +25,7 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: SampleObject1-auth
-      - name: customservice-basic-db
+      - name: customservice-db
 
   - name: SampleObject1-db-deployer
     type: hdb
@@ -33,7 +33,7 @@ modules:
     parameters:
       buildpack: nodejs_buildpack
     requires:
-      - name: customservice-basic-db
+      - name: customservice-db
 
   - name: SampleObject1
     type: approuter.nodejs
@@ -71,7 +71,7 @@ resources:
             - https://*~{app-api/app-uri}/**
     requires:
       - name: app-api
-  - name: customservice-basic-db
+  - name: customservice-db
     type: com.sap.xs.hdi-container
     parameters:
       service: hana

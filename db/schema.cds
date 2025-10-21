@@ -38,7 +38,7 @@ entity Samples : managed{
 
 // New Notes sub-entity used as composition from Samples
 entity Notes : managed {
-    key ID                : UUID;
+    key notesID                : UUID;
     note                  : String(1000);
     sample                : Association to Samples;    // association back to parent used by the ON-condition
 }

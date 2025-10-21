@@ -2,9 +2,12 @@ const cds = require('@sap/cds');
 
 module.exports = cds.service.impl(async function () {
   const { Samples } = this.entities;
-/*
-  // Validate before CREATE
+
+  // Validate before CREATE (only for root Samples entity)
   this.before('CREATE', Samples, (req) => {
+    // ensure this runs only for the Samples root entity
+    if (req.target !== Samples) return;
+
     const d = req.data || {};
 
     if (!d.sampleName || !d.sampleName.toString().trim()) {
@@ -18,8 +21,10 @@ module.exports = cds.service.impl(async function () {
     }
   });
 
-  // Validate before UPDATE (partial updates supported)
+  // Validate before UPDATE (only for root Samples entity)
   this.before('UPDATE', Samples, (req) => {
+    if (req.target !== Samples) return;
+
     const d = req.data || {};
 
     if ('numberOfSamples' in d && d.numberOfSamples != null && d.numberOfSamples <= 0) {
@@ -30,5 +35,4 @@ module.exports = cds.service.impl(async function () {
     }
   });
 
-  */
 });

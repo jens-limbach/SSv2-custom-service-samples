@@ -11,6 +11,7 @@ entity Samples : managed{
     opportunity           : Association to Opportunities;// Opportunity: Relation (Opportunity)
     serviceCase           : Association to ServiceCases;     // Product: Relation (Part Number)
     account               : Association to Account;// Opportunity: Relation (Opportunity)
+    employee               : Association to Employee;// Opportunity: Relation (Opportunity)
     numberOfSamples       : Integer;                    // Number of Samples: Number
     shipToAddress         : String(255);                    // Ship to Address: Address (structured type)
 
@@ -61,6 +62,11 @@ entity Account {
 
 entity ServiceCases {
     key caseID     : UUID;
+    name                  : String(255);
+}
+
+entity Employee {
+    key employeeID        : UUID;
     name                  : String(255);
 }
 

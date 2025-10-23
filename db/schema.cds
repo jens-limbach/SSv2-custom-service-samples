@@ -10,7 +10,9 @@ entity Samples : managed{
     product               : Association to Products;     // Product: Relation (Part Number)
     opportunity           : Association to Opportunities;// Opportunity: Relation (Opportunity)
     serviceCase           : Association to ServiceCases;     // Product: Relation (Part Number)
+    // Customer : UUID
     account               : Association to Account;// Opportunity: Relation (Opportunity)
+    // on ID on Customer // then also add coded in the service.js to get the name
     employee               : Association to Employee;// Opportunity: Relation (Opportunity)
     numberOfSamples       : Integer;                    // Number of Samples: Number
     shipToAddress         : String(255);                    // Ship to Address: Address (structured type)

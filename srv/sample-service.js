@@ -32,12 +32,12 @@ module.exports = cds.service.impl(async function () {
       const today = new Date();
       today.setHours(0,0,0,0);
       due.setHours(0,0,0,0);
-      if (due > today && !d.sampleName.endsWith(' 🔴')) {
+      if (due < today && !d.sampleName.endsWith(' 🔴')) {
         d.sampleName = `${d.sampleName} 🔴`;
         if (d.status === 'Open') {
           d.status = 'Overdue';
         }
-      } else if (due <= today && d.sampleName.endsWith(' 🔴')) {
+      } else if (due >= today && d.sampleName.endsWith(' 🔴')) {
         d.sampleName = d.sampleName.slice(0, -2);
       }
     }
@@ -82,12 +82,12 @@ module.exports = cds.service.impl(async function () {
       const today2 = new Date();
       today2.setHours(0,0,0,0);
       due2.setHours(0,0,0,0);
-      if (due2 > today2 && !d.sampleName.endsWith(' 🔴')) {
+      if (due2 < today2 && !d.sampleName.endsWith(' 🔴')) {
         d.sampleName = `${d.sampleName} 🔴`;
         if (d.status === 'Open') {
           d.status = 'Overdue';
         }
-      } else if (due2 <= today2 && d.sampleName.endsWith(' 🔴')) {
+      } else if (due2 >= today2 && d.sampleName.endsWith(' 🔴')) {
         d.sampleName = d.sampleName.slice(0, -2);
       }
     }

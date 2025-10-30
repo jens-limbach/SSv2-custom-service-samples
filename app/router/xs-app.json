@@ -40,6 +40,14 @@
           "protocol": "https"
         },
         {
+          "host": "service7-staging.cxm-salescloud.com",
+          "protocol": "https"
+        },
+        {
+          "host": "my1000265.vlab.crm.cloud.sap",
+          "protocol": "https"
+        },
+        {
           "host": "my1000210.de1.demo.crm.cloud.sap",
           "protocol": "https"
         }

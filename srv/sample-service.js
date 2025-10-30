@@ -2,7 +2,35 @@ const cds = require('@sap/cds');
 const { SELECT } = cds;
 
 module.exports = cds.service.impl(async function () {
+
+
+
   const { Samples } = this.entities;
+
+    this.before('READ', Samples, (req) => {
+        if (!req.query.SELECT.columns || req.query.SELECT.columns.length === 0) {
+            req.query.SELECT.columns = [];
+            req.query.SELECT.columns.push('*');
+            req.query.SELECT.columns.push({ ref: ['costOfSample'], expand: ['*'] });
+            req.query.SELECT.columns.push({ ref: ['account'], expand: ['*'] });
+        }
+    })
+
+    this.after('READ', Samples, (Samples, req) => {
+        Samples.forEach((po) => {
+            // remove unnecessary fields from Response
+            if (po.costOfSample?.ID) {
+                delete po.costOfSample.ID;
+            }
+            if (po.customerUUID) {
+                delete po.customerUUID;
+            }
+        });
+
+        return Samples;
+    })
+
+
 
   // Validate before CREATE (only for root Samples entity)
   this.before('CREATE', Samples, (req) => {

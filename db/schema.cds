@@ -75,10 +75,11 @@ entity Opportunities {
         name          : String(255);
 }
 
-
+@isCnsEntity: true
 entity Account {
     key accountID : UUID;
-        name      : String(255);
+        displayId : String;
+        @description name      : String(255);
 }
 
 entity ServiceCases {

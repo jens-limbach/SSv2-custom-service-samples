@@ -8,26 +8,33 @@ module.exports = cds.service.impl(async function () {
   const { Samples } = this.entities;
 
     this.before('READ', Samples, (req) => {
-        if (!req.query.SELECT.columns || req.query.SELECT.columns.length === 0) {
-            req.query.SELECT.columns = [];
-            req.query.SELECT.columns.push('*');
-            req.query.SELECT.columns.push({ ref: ['costOfSample'], expand: ['*'] });
-            req.query.SELECT.columns.push({ ref: ['account'], expand: ['*'] });
-        }
+        const sel = req.query && req.query.SELECT;
+        if (!sel) return;
+
+        // ensure columns array exists
+        if (!sel.columns || sel.columns.length === 0) sel.columns = [{ ref: ['*'] }];
+
+        const ensureNavExpand = (nav) => {
+            const exists = sel.columns.some(col => {
+                return col && col.ref && Array.isArray(col.ref) && col.ref[0] === nav;
+            });
+            if (!exists) sel.columns.push({ ref: [nav], expand: ['*'] });
+        };
+
+        ensureNavExpand('costOfSample');
+        ensureNavExpand('account');
     })
 
     this.after('READ', Samples, (Samples, req) => {
-        Samples.forEach((po) => {
+        const rows = Array.isArray(Samples) ? Samples : [Samples];
+
+        rows.forEach((po) => {
             // remove unnecessary fields from Response
-            if (po.costOfSample?.ID) {
-                delete po.costOfSample.ID;
-            }
-            if (po.customerUUID) {
-                delete po.customerUUID;
-            }
+            if (po?.costOfSample?.ID) delete po.costOfSample.ID;
+            if (po?.customerUUID) delete po.customerUUID;
         });
 
-        return Samples;
+        return Array.isArray(Samples) ? rows : rows[0];
     })
 
 

@@ -8,7 +8,7 @@ service SampleService @(path: '/sample-service') {
 
     entity Amount       as projection on sampleschema.Amount;
     entity Notes        as projection on sampleschema.Notes excluding { createdAt, createdBy, modifiedBy };
-    entity Accounts     as projection on sampleschema.Account;
+    entity Account     as projection on sampleschema.Account;
 
     event customer.ssc.sampleservice.event.SampleCreate {};
 }

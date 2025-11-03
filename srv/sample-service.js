@@ -2,11 +2,88 @@ const cds = require('@sap/cds');
 const { SELECT } = cds;
 
 module.exports = cds.service.impl(async function () {
-
-
+  
+  
+  /*
 
   const { Samples } = this.entities;
 
+
+// helper to POST the exact JSON payload to the external REST endpoint
+  const postInboundEvent = (body) => {
+    const data = JSON.stringify(body);
+    const user = process.env.INBOUND_USER || 'INBOUNDSAMPLE';
+    const pass = process.env.INBOUND_PASS || 'WelCome123!$%WeLcoMe1!123$%&/t';
+    const auth = 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
+
+    const options = {
+      hostname: 'my1000210.de1.demo.crm.cloud.sap',
+      path: '/sap/c4c/api/v1/inbound-data-connector-service/events',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data),
+        'Authorization': auth
+      }
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = https.request(options, (res) => {
+        let resp = '';
+        res.on('data', (chunk) => resp += chunk);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) return resolve({ status: res.statusCode, body: resp });
+          return reject(new Error(`HTTP ${res.statusCode}: ${resp}`));
+        });
+      });
+
+      req.on('error', (err) => reject(err));
+      req.write(data);
+      req.end();
+    });
+  };
+
+// After create: send REST call (handled safely to avoid breaking the CREATE)
+  this.after('CREATE', Samples, async (sample, req) => {
+    if (req.target !== Samples) return sample;
+
+    // payload must look exactly like provided JSON
+    const payload = {
+        "id": uuidv4(),
+        "subject": "e8740ebc-0d88-43af-894d-79ecd41e5f57",
+        "type": "customer.ssc.sampleservice.event.SampleCreate",
+        "specversion": "0.2",
+        "source": "614cd785fe86ec5c905b4a01",
+        "time": "2025-01-23T01:10:00.180Z",
+        "datacontenttype": "application/json",
+        "data": {
+            "currentImage": {
+                "id": "e8740ebc-0d88-43af-894d-79ecd41e5f57",
+                "sampleName": "Full Sample Event",
+                "status": "OPEN",
+                "account": {
+                    "customerUUID": "11ed76db-06ae-3eee-afdb-81a1db010a00"
+                }
+            }
+        }
+    };
+
+    try {
+      await postInboundEvent(payload);
+      // optionally log success
+      console.log('Inbound event posted successfully');
+    } catch (err) {
+      // do not throw — log the error so CREATE is not turned into a 500
+      console.error('Failed to post inbound event:', err && err.message ? err.message : err);
+    }
+
+    return sample;
+  });
+*/
+
+
+  /*
+  // Enhance READ to always expand certain navigation properties
     this.before('READ', Samples, (req) => {
         const sel = req.query && req.query.SELECT;
         if (!sel) return;
@@ -36,8 +113,6 @@ module.exports = cds.service.impl(async function () {
 
         return Array.isArray(Samples) ? rows : rows[0];
     })
-
-
 
   // Validate before CREATE (only for root Samples entity)
   this.before('CREATE', Samples, (req) => {
@@ -128,5 +203,5 @@ module.exports = cds.service.impl(async function () {
     }
 
   });
-
+*/
 });

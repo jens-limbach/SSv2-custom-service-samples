@@ -81,7 +81,7 @@ module.exports = cds.service.impl(async function () {
             });
             accountDataBatchResp.responses.forEach((eachAccDtl, index) => {
                 if (eachAccDtl?.body?.value) {
-                    Products[index]['account'] = {
+                    Account[index]['account'] = {
                         id: eachAccDtl.body.value.accountID,
                         name: eachAccDtl.body.value.name,
                         displayId: eachAccDtl.body.value.displayId

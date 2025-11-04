@@ -1,10 +1,103 @@
 const cds = require('@sap/cds');
+const crypto = require("crypto");
 const { SELECT } = cds;
 
 module.exports = cds.service.impl(async function () {
   
-  
+
+    this.before('READ', 'Samples', (req) => {
+        if (!req.query.SELECT.columns || req.query.SELECT.columns.length === 0) {
+            req.query.SELECT.columns = [];
+            req.query.SELECT.columns.push('*');
+            req.query.SELECT.columns.push({ ref: ['costOfSample'], expand: ['*'] });
+            req.query.SELECT.columns.push({ ref: ['product'], expand: ['*'] });
+            req.query.SELECT.columns.push({ ref: ['account'], expand: ['*'] });
+        }
+    })
+
+
+    this.after('READ', 'Products', async (Products, req) => {
+        try {
+            const productApi = await cds.connect.to("Product.Service");
+            const requestList = [];
+
+            // forming batch call
+            Products.forEach((pd, index) => {
+                let productCnsEndPoint = `/sap/c4c/api/v1/product-service/products/${pd.productId}?$select=displayId,id,name`;
+                requestList.push({
+                    "id": 'productCns_' + index++,
+                    "url": productCnsEndPoint,
+                    "method": "GET"
+                })
+            });
+            const productDataBatchResp = await productApi.send({
+                method: "POST",
+                path: `$batch`,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    "requests": requestList
+                }
+            });
+            productDataBatchResp.responses.forEach((eachProdDtl, index) => {
+                if (eachProdDtl?.body?.value) {
+                    Products[index]['product'] = {
+                        id: eachProdDtl.body.value.productId,
+                        name: eachProdDtl.body.value.name,
+                        displayId: eachProdDtl.body.value.displayId
+                    };
+                }
+            })
+            return Products;
+        } catch (err) {
+            return req.reject(err);
+        }
+    })
+
+    this.after('READ', 'Account', async (Account, req) => {
+        try {
+            const accountApi = await cds.connect.to("Account.Service");
+            const requestList = [];
+
+            // forming batch call
+            Account.forEach((pd, index) => {
+                let accountCnsEndPoint = `/sap/c4c/api/v1/account-service/accounts/${pd.accountID}?$select=displayId,id,name`;
+                requestList.push({
+                    "id": 'accountCns_' + index++,
+                    "url": accountCnsEndPoint,
+                    "method": "GET"
+                })
+            });
+            const accountDataBatchResp = await accountApi.send({
+                method: "POST",
+                path: `$batch`,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    "requests": requestList
+                }
+            });
+            accountDataBatchResp.responses.forEach((eachAccDtl, index) => {
+                if (eachAccDtl?.body?.value) {
+                    Products[index]['account'] = {
+                        id: eachAccDtl.body.value.accountID,
+                        name: eachAccDtl.body.value.name,
+                        displayId: eachAccDtl.body.value.displayId
+                    };
+                }
+            })
+            return Account;
+        } catch (err) {
+            return req.reject(err);
+        }
+    })
+
+
+
   /*
+
 
   const { Samples } = this.entities;
 
@@ -79,10 +172,10 @@ module.exports = cds.service.impl(async function () {
 
     return sample;
   });
-*/
 
 
-  /*
+
+  
   // Enhance READ to always expand certain navigation properties
     this.before('READ', Samples, (req) => {
         const sel = req.query && req.query.SELECT;
@@ -203,5 +296,7 @@ module.exports = cds.service.impl(async function () {
     }
 
   });
-*/
+
+
+  */
 });

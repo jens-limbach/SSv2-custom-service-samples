@@ -13,10 +13,12 @@ entity Samples : managed {
         productUUID       : UUID;
         product           : Association to Products
                                 on product.productID = productUUID; // Product: Relation (Part Number)
-
+// not needed for custom services (obsolete)
         customerUUID      : UUID;
+
+        Customer          : UUID;
         account           : Association to Account
-                                on account.accountID = customerUUID; // just a simple UUID is needed because it is foreign key scenario
+                                on account.accountID = Customer; // just a simple UUID is needed because it is foreign key scenario
 
         employeeUUID      : UUID;
         employee          : Association to Employee
@@ -67,6 +69,7 @@ entity Notes : managed {
 
 entity Products {
     key productID : UUID;
+        displayId : String;
         name      : String(255);
 }
 

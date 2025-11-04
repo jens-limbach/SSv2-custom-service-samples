@@ -29,6 +29,26 @@
       "auth": "mocked"
       },
       "auth": "mocked"
-    }
+    },
+    "Account.Service": {
+      "kind": "rest",
+      "[production]": {
+        "credentials": {
+          "destination": "cns-custom-service-cap",
+          "path": ""
+        }
+      },
+      "[development]": {}
+    },
+      "Product.Service": {
+        "kind": "rest",
+        "[production]": {
+          "credentials": {
+            "destination": "cns-custom-service-cap",
+            "path": ""
+          }
+        },
+        "[development]": {}
+      }
   }
 }

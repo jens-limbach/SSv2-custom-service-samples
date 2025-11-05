@@ -36,14 +36,14 @@ module.exports = cds.service.impl(async function () {
         };
 
         ensureNavExpand('costOfSample');
-        //ensureNavExpand('account');
-        //ensureNavExpand('product');
+        ensureNavExpand('account');
+        ensureNavExpand('product');
     });
 
 
     // Get Product details and add to response
     this.after('READ', 'Products', async (Products, req) => {
-       console.log("After.Read was started");
+       console.log("After.Read for product was started");
 
         try {
             const productApi = await cds.connect.to("Product.Service");
@@ -51,7 +51,8 @@ module.exports = cds.service.impl(async function () {
 
             // forming batch call
             Products.forEach((pd, index) => {
-                let productCnsEndPoint = `/sap/c4c/api/v1/product-service/products/${pd.productId}?$select=displayId,id,name`;
+              console.log("Product ID: "+pd.productID);
+                let productCnsEndPoint = `/sap/c4c/api/v1/product-service/products/${pd.productID}?$select=displayId,id,name`;
                 requestList.push({
                     "id": 'productCns_' + index++,
                     "url": productCnsEndPoint,
@@ -71,10 +72,12 @@ module.exports = cds.service.impl(async function () {
             productDataBatchResp.responses.forEach((eachProdDtl, index) => {
                 if (eachProdDtl?.body?.value) {
                     Products[index]['product'] = {
-                        id: eachProdDtl.body.value.productId,
+                        id: eachProdDtl.body.value.id,
                         name: eachProdDtl.body.value.name,
                         displayId: eachProdDtl.body.value.displayId
+
                     };
+                    
                 }
             })
             return Products;
@@ -90,8 +93,8 @@ module.exports = cds.service.impl(async function () {
             const requestList = [];
 
             // forming batch call
-            Account.forEach((pd, index) => {
-                let accountCnsEndPoint = `/sap/c4c/api/v1/account-service/accounts/${pd.accountID}?$select=displayId,id,name`;
+            Account.forEach((ac, index) => {
+                let accountCnsEndPoint = `/sap/c4c/api/v1/account-service/accounts/${ac.accountID}?$select=displayId,id,formattedName`;
                 requestList.push({
                     "id": 'accountCns_' + index++,
                     "url": accountCnsEndPoint,
@@ -111,10 +114,11 @@ module.exports = cds.service.impl(async function () {
             accountDataBatchResp.responses.forEach((eachAccDtl, index) => {
                 if (eachAccDtl?.body?.value) {
                     Account[index]['account'] = {
-                        id: eachAccDtl.body.value.accountID,
-                        name: eachAccDtl.body.value.name,
+                        id: eachAccDtl.body.value.id,
+                        name: eachAccDtl.body.value.formattedName,
                         displayId: eachAccDtl.body.value.displayId
                     };
+                    console.log("Account response reached. Some values: "+eachAccDtl.body.value.displayId+" "+eachAccDtl.body.value.firstLineName);
                 }
             })
             return Account;

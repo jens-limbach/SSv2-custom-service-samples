@@ -11,14 +11,14 @@ entity Samples : managed {
         };
 
         productUUID       : UUID;
-        product           : Association to Products
-                                on product.productID = productUUID; // Product: Relation (Part Number)
-// not needed for custom services (obsolete)
+        product           : Composition of Products
+                                on product.ID = productUUID; // Product: Relation (Part Number)
+
         customerUUID      : UUID;
 
-        Customer          : UUID;
-        account           : Association to Account
-                                on account.accountID = Customer; // just a simple UUID is needed because it is foreign key scenario
+        //Customer          : UUID;
+        account           : Composition of Account
+                                on account.ID = customerUUID; // just a simple UUID is needed because it is foreign key scenario
 
         employeeUUID      : UUID;
         employee          : Association to Employee
@@ -67,10 +67,12 @@ entity Notes : managed {
         sample  : Association to Samples; // association back to parent used by the ON-condition
 }
 
+@isCnsEntity: true
 entity Products {
-    key productID : UUID;
+    key ID        : UUID;
+        productID : UUID;
         displayId : String;
-        name      : String(255);
+        @description name      : String(255);
 }
 
 entity Opportunities {
@@ -80,7 +82,8 @@ entity Opportunities {
 
 @isCnsEntity: true
 entity Account {
-    key accountID : UUID;
+    key ID : UUID;
+        accountID : UUID;
         displayId : String;
         @description name      : String(255);
 }

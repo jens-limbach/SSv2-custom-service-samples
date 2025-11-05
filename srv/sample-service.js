@@ -4,21 +4,7 @@ const { SELECT } = cds;
 
 module.exports = cds.service.impl(async function () {
 
-
-      // Old code to auto expand costOfSample
-    /*         
-        this.before('READ', 'Samples', (req) => {
-            if (!req.query.SELECT.columns || req.query.SELECT.columns.length === 0) {
-                req.query.SELECT.columns = [];
-                req.query.SELECT.columns.push('*');
-                req.query.SELECT.columns.push({ ref: ['costOfSample'], expand: ['*'] });
-                req.query.SELECT.columns.push({ ref: ['product'], expand: ['*'] });
-                req.query.SELECT.columns.push({ ref: ['account'], expand: ['*'] });
-            }
-        })
-    */
-
-    const { Samples } = this.entities;
+const { Samples } = this.entities;
 
     // Before Read to expand any sub structure like amounts
     this.before('READ', Samples, (req) => {
@@ -36,23 +22,23 @@ module.exports = cds.service.impl(async function () {
         };
 
         ensureNavExpand('costOfSample');
-        ensureNavExpand('account');
-        ensureNavExpand('product');
+
     });
 
+ // Get Product and Account details on the fly and add to response
+    this.after('READ', 'Samples', async (Samples, req) => {
+       console.log("After.Read for sample was started");
 
-    // Get Product details and add to response
-    this.after('READ', 'Products', async (Products, req) => {
-       console.log("After.Read for product was started");
-
+        // Get Product details and add to response
         try {
             const productApi = await cds.connect.to("Product.Service");
             const requestList = [];
 
             // forming batch call
-            Products.forEach((pd, index) => {
-              console.log("Product ID: "+pd.productID);
-                let productCnsEndPoint = `/sap/c4c/api/v1/product-service/products/${pd.productID}?$select=displayId,id,name`;
+            Samples?.forEach((sa, index) => {
+              if (!sa.product.productID) return;
+                console.log("Product ID: "+sa.product.productID);
+                let productCnsEndPoint = `/sap/c4c/api/v1/product-service/products/${sa.product.productID}?$select=displayId,id,name`;
                 requestList.push({
                     "id": 'productCns_' + index++,
                     "url": productCnsEndPoint,
@@ -71,7 +57,7 @@ module.exports = cds.service.impl(async function () {
             });
             productDataBatchResp.responses.forEach((eachProdDtl, index) => {
                 if (eachProdDtl?.body?.value) {
-                    Products[index]['product'] = {
+                    Samples[index]['product'] = {
                         id: eachProdDtl.body.value.id,
                         name: eachProdDtl.body.value.name,
                         displayId: eachProdDtl.body.value.displayId
@@ -80,22 +66,17 @@ module.exports = cds.service.impl(async function () {
                     
                 }
             })
-            return Products;
-        } catch (err) {
-            return req.reject(err);
-        }
-    })
 
-    // Get Account details and add to response
-    this.after('READ', 'Account', async (Account, req) => {
-        try {
+
+            // Get Account details and add to response
             const accountApi = await cds.connect.to("Account.Service");
-            const requestList = [];
+            const requestList2 = [];
 
             // forming batch call
-            Account.forEach((ac, index) => {
-                let accountCnsEndPoint = `/sap/c4c/api/v1/account-service/accounts/${ac.accountID}?$select=displayId,id,formattedName`;
-                requestList.push({
+            Samples?.forEach((sa, index) => {
+              if (!sa.account.accountID) return;
+                let accountCnsEndPoint = `/sap/c4c/api/v1/account-service/accounts/${sa.account.accountID}?$select=displayId,id,formattedName`;
+                requestList2.push({
                     "id": 'accountCns_' + index++,
                     "url": accountCnsEndPoint,
                     "method": "GET"
@@ -108,137 +89,83 @@ module.exports = cds.service.impl(async function () {
                     "Content-Type": "application/json",
                 },
                 data: {
-                    "requests": requestList
+                    "requests": requestList2
                 }
             });
             accountDataBatchResp.responses.forEach((eachAccDtl, index) => {
                 if (eachAccDtl?.body?.value) {
-                    Account[index]['account'] = {
+                    Samples[index]['account'] = {
                         id: eachAccDtl.body.value.id,
                         name: eachAccDtl.body.value.formattedName,
                         displayId: eachAccDtl.body.value.displayId
                     };
-                    console.log("Account response reached. Some values: "+eachAccDtl.body.value.displayId+" "+eachAccDtl.body.value.firstLineName);
+                    console.log("Account response reached. Some values: "+eachAccDtl.body.value.displayId+" "+eachAccDtl.body.value.formattedName);
                 }
             })
-            return Account;
+
+            return Samples;
         } catch (err) {
             return req.reject(err);
-        }
-    })
+        }    
+   })
 
-
-
-  /*
-
-
-  const { Samples } = this.entities;
-
-
-// helper to POST the exact JSON payload to the external REST endpoint
-  const postInboundEvent = (body) => {
-    const data = JSON.stringify(body);
-    const user = process.env.INBOUND_USER || 'INBOUNDSAMPLE';
-    const pass = process.env.INBOUND_PASS || 'WelCome123!$%WeLcoMe1!123$%&/t';
-    const auth = 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64');
-
-    const options = {
-      hostname: 'my1000210.de1.demo.crm.cloud.sap',
-      path: '/sap/c4c/api/v1/inbound-data-connector-service/events',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(data),
-        'Authorization': auth
-      }
-    };
-
-    return new Promise((resolve, reject) => {
-      const req = https.request(options, (res) => {
-        let resp = '';
-        res.on('data', (chunk) => resp += chunk);
-        res.on('end', () => {
-          if (res.statusCode >= 200 && res.statusCode < 300) return resolve({ status: res.statusCode, body: resp });
-          return reject(new Error(`HTTP ${res.statusCode}: ${resp}`));
-        });
-      });
-
-      req.on('error', (err) => reject(err));
-      req.write(data);
-      req.end();
-    });
-  };
-
-// After create: send REST call (handled safely to avoid breaking the CREATE)
+/*
+  // After create: send REST call to create a new timeline entry
   this.after('CREATE', Samples, async (sample, req) => {
+    console.log("After create logic started");
+
     if (req.target !== Samples) return sample;
 
-    // payload must look exactly like provided JSON
-    const payload = {
-        "id": uuidv4(),
-        "subject": "e8740ebc-0d88-43af-894d-79ecd41e5f57",
-        "type": "customer.ssc.sampleservice.event.SampleCreate",
-        "specversion": "0.2",
-        "source": "614cd785fe86ec5c905b4a01",
-        "time": "2025-01-23T01:10:00.180Z",
-        "datacontenttype": "application/json",
-        "data": {
-            "currentImage": {
-                "id": "e8740ebc-0d88-43af-894d-79ecd41e5f57",
-                "sampleName": "Full Sample Event",
-                "status": "OPEN",
-                "account": {
-                    "customerUUID": "11ed76db-06ae-3eee-afdb-81a1db010a00"
-                }
-            }
-        }
-    };
-
     try {
-      await postInboundEvent(payload);
-      // optionally log success
-      console.log('Inbound event posted successfully');
+      const timelineApi = await cds.connect.to("Timeline.Service");
+
+      // generate event id and current time
+      const eventId = crypto.randomUUID();
+      const eventTime = new Date().toISOString();
+
+      // determine account id from sample (try several possible fields)
+      const accountId = sample.Customer || sample.customerUUID || (sample.account && (sample.account.accountID || sample.account.id));
+
+      const payload = {
+        id: eventId,
+        subject: sample.ID,                                  // subject equals the sample ID
+        type: "customer.ssc.sampleservice.event.SampleCreate",
+        specversion: "0.2",
+        source: "614cd785fe86ec5c905b4a00",
+        time: eventTime,
+        datacontenttype: "application/json",
+        data: {
+          currentImage: {
+            ID: sample.ID,
+            name: sample.sampleName,
+            status: sample.status,
+            account: {
+              id: accountId
+            }
+          }
+        }
+      };
+
+      const resp = await timelineApi.send({
+        method: "POST",
+        path: "/sap/c4c/api/v1/inbound-data-connector-service/events",
+        headers: { "Content-Type": "application/json" },
+        data: payload
+      });
+
+      console.log(`[Timeline] posted event ${eventId} for sample ${sample.ID} - status=${resp && resp.status ? resp.status : 'unknown'}`);
     } catch (err) {
-      // do not throw — log the error so CREATE is not turned into a 500
-      console.error('Failed to post inbound event:', err && err.message ? err.message : err);
+      console.error('[Timeline] failed to post event for sample', sample && sample.ID, err && (err.stack || err.message || err));
+      // do not reject the original create - just log the error
     }
 
     return sample;
+    
   });
 
+*/
 
-
-  
-  // Enhance READ to always expand certain navigation properties
-    this.before('READ', Samples, (req) => {
-        const sel = req.query && req.query.SELECT;
-        if (!sel) return;
-
-        // ensure columns array exists
-        if (!sel.columns || sel.columns.length === 0) sel.columns = [{ ref: ['*'] }];
-
-        const ensureNavExpand = (nav) => {
-            const exists = sel.columns.some(col => {
-                return col && col.ref && Array.isArray(col.ref) && col.ref[0] === nav;
-            });
-            if (!exists) sel.columns.push({ ref: [nav], expand: ['*'] });
-        };
-
-        ensureNavExpand('costOfSample');
-        ensureNavExpand('account');
-    })
-
-    this.after('READ', Samples, (Samples, req) => {
-        const rows = Array.isArray(Samples) ? Samples : [Samples];
-
-        rows.forEach((po) => {
-            // remove unnecessary fields from Response
-            if (po?.costOfSample?.ID) delete po.costOfSample.ID;
-            if (po?.customerUUID) delete po.customerUUID;
-        });
-
-        return Array.isArray(Samples) ? rows : rows[0];
-    })
+/*
 
   // Validate before CREATE (only for root Samples entity)
   this.before('CREATE', Samples, (req) => {

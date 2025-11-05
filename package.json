@@ -62,6 +62,22 @@
             "password": "Welcome1!"
           }
         }
+      },
+      "Timeline.Service": {
+        "kind": "rest",
+        "[production]": {
+          "credentials": {
+            "destination": "cns-custom-service-cap",
+            "path": ""
+          }
+        },
+        "[development]": {
+          "credentials": {
+            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "username": "INBOUNDSAMPLE",
+            "password": "WelCome123!$%WeLcoMe1!123$%&/t"
+          }
+        }
       }
     }
   }

@@ -4,19 +4,47 @@ const { SELECT } = cds;
 
 module.exports = cds.service.impl(async function () {
 
-         
-    this.before('READ', 'Samples', (req) => {
-        if (!req.query.SELECT.columns || req.query.SELECT.columns.length === 0) {
-            req.query.SELECT.columns = [];
-            req.query.SELECT.columns.push('*');
-            req.query.SELECT.columns.push({ ref: ['costOfSample'], expand: ['*'] });
-            req.query.SELECT.columns.push({ ref: ['product'], expand: ['*'] });
-            req.query.SELECT.columns.push({ ref: ['account'], expand: ['*'] });
-        }
-    })
+
+      // Old code to auto expand costOfSample
+    /*         
+        this.before('READ', 'Samples', (req) => {
+            if (!req.query.SELECT.columns || req.query.SELECT.columns.length === 0) {
+                req.query.SELECT.columns = [];
+                req.query.SELECT.columns.push('*');
+                req.query.SELECT.columns.push({ ref: ['costOfSample'], expand: ['*'] });
+                req.query.SELECT.columns.push({ ref: ['product'], expand: ['*'] });
+                req.query.SELECT.columns.push({ ref: ['account'], expand: ['*'] });
+            }
+        })
+    */
+
+    const { Samples } = this.entities;
+
+    // Before Read to expand any sub structure like amounts
+    this.before('READ', Samples, (req) => {
+        const sel = req.query && req.query.SELECT;
+        if (!sel) return; // nothing to change for non-SELECT requests
+
+        // ensure columns array exists and starts with all columns
+        if (!sel.columns || sel.columns.length === 0) sel.columns = [{ ref: ['*'] }];
+
+        const ensureNavExpand = (nav) => {
+            const exists = sel.columns.some(col => {
+                return col && col.ref && Array.isArray(col.ref) && col.ref[0] === nav;
+            });
+            if (!exists) sel.columns.push({ ref: [nav], expand: ['*'] });
+        };
+
+        ensureNavExpand('costOfSample');
+        //ensureNavExpand('account');
+        //ensureNavExpand('product');
+    });
 
 
+    // Get Product details and add to response
     this.after('READ', 'Products', async (Products, req) => {
+       console.log("After.Read was started");
+
         try {
             const productApi = await cds.connect.to("Product.Service");
             const requestList = [];
@@ -55,6 +83,7 @@ module.exports = cds.service.impl(async function () {
         }
     })
 
+    // Get Account details and add to response
     this.after('READ', 'Account', async (Account, req) => {
         try {
             const accountApi = await cds.connect.to("Account.Service");

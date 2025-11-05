@@ -6,10 +6,12 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@sap/cds": "^9",
-    "express": "^4",
     "@cap-js/hana": "^2",
-    "@sap/xssec": "^4"
+    "@sap-cloud-sdk/http-client": "^4.1.2",
+    "@sap-cloud-sdk/resilience": "^4.1.2",
+    "@sap/cds": "^9",
+    "@sap/xssec": "^4",
+    "express": "^4"
   },
   "engines": {
     "node": ">=20"
@@ -25,20 +27,26 @@
   "cds": {
     "requires": {
       "[production]": {
-      "db": "hana",
-      "auth": "mocked"
+        "db": "hana",
+        "auth": "mocked"
       },
       "auth": "mocked",
       "Account.Service": {
-      "kind": "rest",
-      "[production]": {
-        "credentials": {
-          "destination": "cns-custom-service-cap",
-          "path": ""
+        "kind": "rest",
+        "[production]": {
+          "credentials": {
+            "destination": "cns-custom-service-cap",
+            "path": ""
+          }
+        },
+        "[development]": {
+          "credentials": {
+            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "username": "Dev",
+            "password": "Welcome1!"
+          }
         }
       },
-      "[development]": {}
-    },
       "Product.Service": {
         "kind": "rest",
         "[production]": {
@@ -47,7 +55,13 @@
             "path": ""
           }
         },
-        "[development]": {}
+        "[development]": {
+          "credentials": {
+            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "username": "Dev",
+            "password": "Welcome1!"
+          }
+        }
       }
     }
   }

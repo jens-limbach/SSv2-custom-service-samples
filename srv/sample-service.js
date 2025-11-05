@@ -3,8 +3,8 @@ const crypto = require("crypto");
 const { SELECT } = cds;
 
 module.exports = cds.service.impl(async function () {
-  
 
+         
     this.before('READ', 'Samples', (req) => {
         if (!req.query.SELECT.columns || req.query.SELECT.columns.length === 0) {
             req.query.SELECT.columns = [];

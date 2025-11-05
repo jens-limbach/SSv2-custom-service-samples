@@ -28,9 +28,8 @@
       "db": "hana",
       "auth": "mocked"
       },
-      "auth": "mocked"
-    },
-    "Account.Service": {
+      "auth": "mocked",
+      "Account.Service": {
       "kind": "rest",
       "[production]": {
         "credentials": {
@@ -50,5 +49,6 @@
         },
         "[development]": {}
       }
+    }
   }
 }

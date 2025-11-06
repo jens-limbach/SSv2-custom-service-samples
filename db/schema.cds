@@ -36,9 +36,9 @@ entity Samples : managed {
         product           : Composition of Products
                                 on product.ID = productUUID; // Product: Relation (Part Number)
 
-        customerUUID      : UUID;
+        accountUUID      : UUID;
         account           : Composition of Account
-                                on account.ID = customerUUID; // just a simple UUID is needed because it is foreign key scenario
+                                on account.ID = accountUUID; // just a simple UUID is needed because it is foreign key scenario
 
         employeeUUID      : UUID;
         employee          : Association to Employee

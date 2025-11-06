@@ -22,9 +22,11 @@ If you want to see less CAP Development and more on how it looks later for the e
 
 **Step by Step Guide:**
 
+Important: If you try this out with several colleagues on the same BTP, please make sure you replace the suffix "JL" with your initials to make it unique.
+
 1.	Open VSCode and the terminal
-2.	Enter in the terminal ```cds init ProjectOrder```
-3.	Enter in the terminal  ```code ProjectOrder``` (on windows at least this opens the project in visual code :P)
+2.	Enter in the terminal ```cds init SampleJL```
+3.	Enter in the terminal  ```code SampleJL``` (on windows at least this opens the project in visual code :P)
 4.	Create ```schema.cds``` file with your entity in the db folder -> Snippet 1
 
 Snippet 1:
@@ -35,44 +37,23 @@ using {managed} from '@sap/cds/common';
 
 entity Samples : managed {
     key ID                : UUID;
+        @description
         sampleName        : String(255); // Sample Name: Text
         sampleType        : String enum { // Sample Type: Select List
             withPackaging;
             withoutPackaging
         };
-
-        productUUID       : UUID;
-        product           : Composition of Products
-                                on product.ID = productUUID; // Product: Relation (Part Number)
-
-        customerUUID      : UUID;
-        account           : Composition of Account
-                                on account.ID = customerUUID; // just a simple UUID is needed because it is foreign key scenario
-
-        employeeUUID      : UUID;
-        employee          : Association to Employee
-                                on employee.employeeID = employeeUUID; // Opportunity: Relation (Opportunity)
-
-        opportunity       : Association to Opportunities; // Opportunity: Relation (Opportunity)
-        serviceCase       : Association to ServiceCases; // Product: Relation (Part Number)
-
         numberOfSamples   : Integer; // Number of Samples: Number
         shipToAddress     : String(255); // Ship to Address: Address (structured type)
-
         @dataFormat: 'AMOUNT'
         costOfSample      : Composition of Amount; // Cost of Sample: Currency
-
         hazardous         : Boolean; // Hazardous: Boolean
         hazardousReason   : String(1000); // Hazardous Reason: Text-Long (1000 Chars)
+        @dataFormat: 'DATE'
         dueDate           : Date; // Due Date: Date
         overdueStatusIcon : String(255); // Overdue Status: String to hold emoticon
-        status            : String enum { // Status: Select List
-            Open;
-            InProgress;
-            Delivered;
-            Returned;
-            Overdue
-        };
+        status            : StatusCodeType default 'Open'; // Status: Select List
+           
 
         // Only relevant if sampleType = withPackaging
         PackagingHeight   : Decimal(15, 2); // Packagin Height
@@ -83,10 +64,49 @@ entity Samples : managed {
             OtherMaterial
         };
 
+        // Associations to other entities
+        productUUID       : UUID;
+        product           : Composition of Products
+                                on product.ID = productUUID; // Product: Relation (Part Number)
+
+        accountUUID      : UUID;
+        account           : Composition of Account
+                                on account.ID = accountUUID; // just a simple UUID is needed because it is foreign key scenario
+
+        employeeUUID      : UUID;
+        employee          : Association to Employee
+                                on employee.employeeID = employeeUUID; // Employee: Relation (Employee)
+
+        opportunityUUID   : UUID;
+        opportunity       : Association to Opportunities // Opportunity: Relation (Opportunity)
+                                on opportunity.opportunityID = opportunityUUID;
+
+        serviceCaseUUID   : UUID;
+        serviceCase       : Association to ServiceCases // Service Case: Relation (Service Case)
+                                on serviceCase.caseID = serviceCaseUUID;
+
         // Composition: sub-entity Notes (one or many as needed)
         notes             : Composition of many Notes
                                 on notes.sample = $self; // Composition of Notes
 
+}
+
+// Structured data type for Amount
+@isCnsEntity: true
+entity Amount {
+    key ID           : UUID;
+        currencyCode : String;
+        content      : Decimal(10, 2);
+}
+
+// Enum types
+
+type StatusCodeType : String @assert.range enum {
+    ACTIVE    = 'Open';
+    INPROGRESS  = 'InProgress';
+    DELIVERED    = 'Delivered';
+    RETURNED  = 'Returned';
+    OVERDUE    = 'Overdue';
 }
 
 // New Notes sub-entity used as composition from Samples
@@ -95,6 +115,8 @@ entity Notes : managed {
         note    : String(1000);
         sample  : Association to Samples; // association back to parent used by the ON-condition
 }
+
+// Associated CRM entities
 
 @isCnsEntity: true
 entity Products {
@@ -115,28 +137,17 @@ entity Account {
 @isCnsEntity: true
 entity Opportunities {
     key opportunityID : UUID;
-        name          : String(255);
 }
 
 @isCnsEntity: true
 entity ServiceCases {
     key caseID : UUID;
-        name   : String(255);
 }
 
 @isCnsEntity: true
 entity Employee {
     key employeeID : UUID;
-        name       : String(255);
 }
-
-@isCnsEntity: true
-entity Amount {
-    key ID           : UUID;
-        currencyCode : String;
-        content      : Decimal(10, 2);
-}
-
 ```
 
 5.	Create ```sample-service.cds``` file in the srv folder with your service definition -> Snippet 2
@@ -147,16 +158,12 @@ using {sap.capire.customservice as sampleschema} from '../db/schema';
 
 service SampleService @(path: '/sample-service') {
 
+    // Projections so that we have those endpoints ready for our frontend application
     @odata.draft.bypass
     entity Samples as projection on sampleschema.Samples excluding { createdAt, createdBy, modifiedBy };
-
-
-    entity Amount       as projection on sampleschema.Amount;
     entity Notes        as projection on sampleschema.Notes excluding { createdAt, createdBy, modifiedBy };
-    entity Account     as projection on sampleschema.Account excluding { createdAt, createdBy, modifiedBy };
-    entity Products     as projection on sampleschema.Products excluding { createdAt, createdBy, modifiedBy };
 
-
+    // Event for the Timeline Entry
     event customer.ssc.sampleservice.event.SampleCreate {};
 }
 ```
@@ -261,7 +268,7 @@ Snippet 5:
 
 <img src="images/mta-yaml.png">
 
--> In case your BTP subaccount has spaces in it’s name: adjust the ```xsappname: ProjectOrder``` in your ```mta.yaml``` by removing the generated placeholders for subaccount and space.
+-> In case your BTP subaccount has spaces in it’s name: adjust the ```xsappname: SampleJL``` in your ```mta.yaml``` by removing the generated placeholders for subaccount and space.
 
 -> Optional hint: Add 128M memory to all your services in ```mta.yaml``` to save some dev space
 
@@ -277,7 +284,7 @@ Snippet 5:
 
 10.	Copy the app router url and try out your backend service.
     
-12.	Enter in the terminal ```cds -2 json .\srv\projectorder-service.cds``` and copy the json into a new file.
+12.	Enter in the terminal ```cds -2 json .\srv\SampleJL-service.cds``` and copy the json into a new file.
 
 13.	Create a new custom service entity in the Sales and Service Cloud V2 frontend, convert the CAP json file, download the final json definition and upload it in custom services
     

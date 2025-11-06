@@ -132,7 +132,7 @@ const { Samples } = this.entities;
       const eventTime = new Date().toISOString();
 
       // determine account id from sample (try several possible fields)
-      const accountId = sample.Customer || sample.customerUUID || (sample.account && (sample.account.accountID || sample.account.id));
+      const accountId = sample.Customer || sample.accountUUID || (sample.account && (sample.account.accountID || sample.account.id));
 
       const payload = {
         id: eventId,

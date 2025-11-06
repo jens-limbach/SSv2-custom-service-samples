@@ -15,8 +15,6 @@ entity Samples : managed {
                                 on product.ID = productUUID; // Product: Relation (Part Number)
 
         customerUUID      : UUID;
-
-        //Customer          : UUID;
         account           : Composition of Account
                                 on account.ID = customerUUID; // just a simple UUID is needed because it is foreign key scenario
 
@@ -75,11 +73,6 @@ entity Products {
         @description name      : String(255);
 }
 
-entity Opportunities {
-    key opportunityID : UUID;
-        name          : String(255);
-}
-
 @isCnsEntity: true
 entity Account {
     key ID : UUID;
@@ -88,11 +81,19 @@ entity Account {
         @description name      : String(255);
 }
 
+@isCnsEntity: true
+entity Opportunities {
+    key opportunityID : UUID;
+        name          : String(255);
+}
+
+@isCnsEntity: true
 entity ServiceCases {
     key caseID : UUID;
         name   : String(255);
 }
 
+@isCnsEntity: true
 entity Employee {
     key employeeID : UUID;
         name       : String(255);

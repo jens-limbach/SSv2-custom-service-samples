@@ -1,5 +1,5 @@
 _schema-version: 3.3.0
-ID: SampleObject2
+ID: SampleObject1
 version: 1.0.0
 description: "A simple CAP project."
 parameters:
@@ -11,7 +11,7 @@ build-parameters:
         - npm ci
         - npx cds build --production
 modules:
-  - name: SampleObject2-srv
+  - name: SampleObject1-srv
     type: nodejs
     path: gen/srv
     parameters:
@@ -24,10 +24,10 @@ modules:
         properties:
           srv-url: ${default-url}
     requires:
-      - name: SampleObject2-auth
+      - name: SampleObject1-auth
       - name: customservice-db2
 
-  - name: SampleObject2-db-deployer
+  - name: SampleObject1-db-deployer
     type: hdb
     path: gen/db
     parameters:
@@ -35,7 +35,7 @@ modules:
     requires:
       - name: customservice-db2
 
-  - name: SampleObject2
+  - name: SampleObject1
     type: approuter.nodejs
     path: app/router
     parameters:
@@ -49,7 +49,7 @@ modules:
           name: srv-api # must be used in xs-app.json as well
           url: ~{srv-url}
           forwardAuthToken: true
-      - name: SampleObject2-auth
+      - name: SampleObject1-auth
     provides:
       - name: app-api
         properties:
@@ -57,14 +57,14 @@ modules:
           app-uri: ${default-uri}
 
 resources:
-  - name: SampleObject2-auth
+  - name: SampleObject1-auth
     type: org.cloudfoundry.managed-service
     parameters:
       service: xsuaa
       service-plan: application
       path: ./xs-security.json
       config:
-        xsappname: SampleObject2
+        xsappname: SampleObject1
         tenant-mode: dedicated
         oauth2-configuration:
           redirect-uris:

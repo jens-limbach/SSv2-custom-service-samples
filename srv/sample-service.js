@@ -36,7 +36,7 @@ const { Samples } = this.entities;
 
             // forming batch call
             Samples?.forEach((sa, index) => {
-              if (!sa.product.productID) return;
+              if (!sa.product.productID) {console.log("no product ID"); return;}
                 console.log("Product ID: "+sa.product.productID);
                 let productCnsEndPoint = `/sap/c4c/api/v1/product-service/products/${sa.product.productID}?$select=displayId,id,name`;
                 requestList.push({

@@ -548,8 +548,67 @@ const { Samples } = this.entities;
 });
 ```
 
+8. Add to your ```package.json``` the following directly into the cds production section:
+```
+,
+      "auth": "mocked",
+      "Account.Service": {
+        "kind": "rest",
+        "[production]": {
+          "credentials": {
+            "destination": "cns-custom-service-cap",
+            "path": ""
+          }
+        },
+        "[development]": {
+          "credentials": {
+            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "username": "Dev",
+            "password": "Welcome1!"
+          }
+        }
+      },
+      "Product.Service": {
+        "kind": "rest",
+        "[production]": {
+          "credentials": {
+            "destination": "cns-custom-service-cap",
+            "path": ""
+          }
+        },
+        "[development]": {
+          "credentials": {
+            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "username": "Dev",
+            "password": "Welcome1!"
+          }
+        }
+      },
+      "Timeline.Service": {
+        "kind": "rest",
+        "[production]": {
+          "credentials": {
+            "destination": "cns-custom-service-cap",
+            "path": ""
+          }
+        },
+        "[development]": {
+          "credentials": {
+            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "username": "INBOUNDSAMPLE",
+            "password": "WelCome123!$%WeLcoMe1!123$%&/t"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 8.	Enter in your terminal
-   
+
+```npm install @sap-cloud-sdk/http-client @sap-cloud-sdk/resilience -save```
+
 ```npm update --package-lock-only```
 
 ```mbt build```

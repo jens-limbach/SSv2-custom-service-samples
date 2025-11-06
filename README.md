@@ -646,9 +646,11 @@ You must add that here and overwrite all the curly brackets at the end:
 -   Add a unique object type code ```"objectTypeCode": "CUS1329",```
 -   Remove the data formats from the ```"dataType": "BOOLEAN",```
 -   Add in the notes sections the additional itemDataType
-```"dataType": "ARRAY",
-    "itemDataType": "OBJECT",
-    ```
+```
+"dataType": "ARRAY",
+"itemDataType": "OBJECT",
+```
+    
 -   Check if all the enum values are generated correctly
 -   Add a notes entity and api
 -   Add a timeline event

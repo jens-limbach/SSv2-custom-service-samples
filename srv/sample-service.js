@@ -31,6 +31,12 @@ const { Samples } = this.entities;
     this.after('READ', 'Samples', async (Samples, req) => {
        console.log("After.Read for sample was started");
 
+
+        // Skip if there are no samples
+        if (!Samples || Samples.length === 0) {
+            return Samples;
+        }
+
         // Get Product details and add to response
         try {
             const productApi = await cds.connect.to("Product.Service");
@@ -38,7 +44,7 @@ const { Samples } = this.entities;
 
             // forming batch call
             Samples?.forEach((sa, index) => {
-              if (!sa.product.productID) {console.log("no product ID"); return;}
+              if (!(sa.product && sa.product.productID)) return;
                 console.log("Product ID: "+sa.product.productID);
                 let productCnsEndPoint = `/sap/c4c/api/v1/product-service/products/${sa.product.productID}?$select=displayId,id,name`;
                 requestList.push({
@@ -76,7 +82,7 @@ const { Samples } = this.entities;
 
             // forming batch call
             Samples?.forEach((sa, index) => {
-              if (!sa.account.accountID) return;
+              if (!(sa.account && sa.account.accountID)) return;
                 let accountCnsEndPoint = `/sap/c4c/api/v1/account-service/accounts/${sa.account.accountID}?$select=displayId,id,formattedName`;
                 requestList2.push({
                     "id": 'accountCns_' + index++,
@@ -107,7 +113,7 @@ const { Samples } = this.entities;
 
             return Samples;
         } catch (err) {
-            return req.reject(err);
+            return req.reject("Account and Product are mandatory. "+err);
         }    
    })
 

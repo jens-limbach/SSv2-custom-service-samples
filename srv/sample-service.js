@@ -22,6 +22,8 @@ const { Samples } = this.entities;
         };
 
         ensureNavExpand('costOfSample');
+        ensureNavExpand('account');
+        ensureNavExpand('product');
 
     });
 

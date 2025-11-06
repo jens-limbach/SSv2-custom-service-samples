@@ -39,10 +39,7 @@ entity Samples : managed {
     key ID                : UUID;
         @description
         sampleName        : String(255); // Sample Name: Text
-        sampleType        : String enum { // Sample Type: Select List
-            withPackaging;
-            withoutPackaging
-        };
+        sampleType        : SampleCodeType;
         numberOfSamples   : Integer; // Number of Samples: Number
         shipToAddress     : String(255); // Ship to Address: Address (structured type)
         @dataFormat: 'AMOUNT'
@@ -53,16 +50,10 @@ entity Samples : managed {
         dueDate           : Date; // Due Date: Date
         overdueStatusIcon : String(255); // Overdue Status: String to hold emoticon
         status            : StatusCodeType default 'Open'; // Status: Select List
-           
-
         // Only relevant if sampleType = withPackaging
         PackagingHeight   : Decimal(15, 2); // Packagin Height
         PackagingWidth    : Decimal(15, 2); // Packaging Width
-        PackagingMaterial : String enum { // Packaging Material: Select List
-            Plastic;
-            Metal;
-            OtherMaterial
-        };
+        PackagingMaterial : PackagingCodeType;
 
         // Associations to other entities
         productUUID       : UUID;
@@ -108,6 +99,19 @@ type StatusCodeType : String @assert.range enum {
     RETURNED  = 'Returned';
     OVERDUE    = 'Overdue';
 }
+
+type PackagingCodeType : String @assert.range enum {
+    PLASTIC    = 'Plastic';
+    METAL  = 'Metal';
+    OTHERMATERIAL    = 'OtherMaterial';
+}
+
+type SampleCodeType : String @assert.range enum {
+    WITHPACKAGING    = 'withPackaging';
+    WITHOUTPACKAGING  = 'withoutPackaging';
+}
+            
+            
 
 // New Notes sub-entity used as composition from Samples
 entity Notes : managed {
@@ -548,7 +552,18 @@ const { Samples } = this.entities;
 });
 ```
 
-8. Add to your ```package.json``` the following directly into the cds production section:
+8. Add to your ```package.json``` the below directly into the cds production section. We need to add some credentials. You need to replace your tenant and credentials in the below code. Normally you would use BTP destinations here but this way we "save" a step.
+
+After exactly the last curly bracket here:
+```
+  "cds": {
+    "requires": {
+      "[production]": {
+        "db": "hana",
+        "auth": "mocked"
+      }
+```
+You must add that here and overwrite all the curly brackets at the end:
 ```
 ,
       "auth": "mocked",
@@ -556,13 +571,14 @@ const { Samples } = this.entities;
         "kind": "rest",
         "[production]": {
           "credentials": {
-            "destination": "cns-custom-service-cap",
-            "path": ""
+            "url": "https://YOURTENANT.de1.demo.crm.cloud.sap",
+            "username": "Dev",
+            "password": "Welcome1!"
           }
         },
         "[development]": {
           "credentials": {
-            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "url": "https://YOURTENANT.de1.demo.crm.cloud.sap",
             "username": "Dev",
             "password": "Welcome1!"
           }
@@ -572,13 +588,14 @@ const { Samples } = this.entities;
         "kind": "rest",
         "[production]": {
           "credentials": {
-            "destination": "cns-custom-service-cap",
-            "path": ""
+            "url": "https://YOURTENANT.de1.demo.crm.cloud.sap",
+            "username": "Dev",
+            "password": "Welcome1!"
           }
         },
         "[development]": {
           "credentials": {
-            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "url": "https://YOURTENANT.de1.demo.crm.cloud.sap",
             "username": "Dev",
             "password": "Welcome1!"
           }
@@ -588,13 +605,14 @@ const { Samples } = this.entities;
         "kind": "rest",
         "[production]": {
           "credentials": {
-            "destination": "cns-custom-service-cap",
-            "path": ""
+            "url": "https://YOURTENANT.de1.demo.crm.cloud.sap",
+            "username": "INBOUNDSAMPLE",
+            "password": "WelCome123!$%WeLcoMe1!123$%&/t"
           }
         },
         "[development]": {
           "credentials": {
-            "url": "https://my1000210.de1.demo.crm.cloud.sap",
+            "url": "https://YOURTENANT.de1.demo.crm.cloud.sap",
             "username": "INBOUNDSAMPLE",
             "password": "WelCome123!$%WeLcoMe1!123$%&/t"
           }
@@ -619,9 +637,23 @@ const { Samples } = this.entities;
 
 10.	Copy the app router url and try out your backend service.
     
-12.	Enter in the terminal ```cds -2 json .\srv\SampleJL-service.cds``` and copy the json into a new file.
+12.	Enter in the terminal ```cds -2 json .\srv\Sample-service.cds > BackendService.json``` and copy the json into a new file.
 
-13.	Create a new custom service entity in the Sales and Service Cloud V2 frontend, convert the CAP json file, download the final json definition and upload it in custom services
+13.	Create a new custom service entity in the Sales and Service Cloud V2 frontend, convert the CAP json file, download the final json definition 
+
+13. Edit the downloaded metadata file and make the following adjustments:
+-   Add a lable ```"label": "Samples",```
+-   Add a unique object type code ```"objectTypeCode": "CUS1329",```
+-   Remove the data formats from the ```"dataType": "BOOLEAN",```
+-   Add in the notes sections the additional itemDataType
+```"dataType": "ARRAY",
+    "itemDataType": "OBJECT",
+    ```
+-   Check if all the enum values are generated correctly
+-   Add a notes entity and api
+-   Add a timeline event
+
+14. upload the adjusted metadata file in custom services
     
 14.	Add UI’s to your custom service
     
